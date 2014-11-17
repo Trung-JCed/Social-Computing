@@ -6,6 +6,8 @@ public class Main
   @SuppressWarnings("null")
 public static void main( String args[] )
   {
+	/* i'm trying to add this line into file to test
+	*/
     Connection c = null;
     try {
       Class.forName("org.sqlite.JDBC");
