@@ -28,8 +28,6 @@ public static void main( String args[] )
 	    	rating[1] = rs.getInt(2);
 	    	rating[2] = rs.getInt(3);	    	
 	    	ratings.add(rating);
-	    	
-	    	System.out.println(rating[0]);
 	    }
 	} catch (SQLException e) {
 		// TODO Auto-generated catch block
