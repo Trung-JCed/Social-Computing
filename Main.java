@@ -1,3 +1,4 @@
+import java.lang.System;
 import java.sql.*;
 import java.util.ArrayList;
 
@@ -6,6 +7,8 @@ public class Main
   @SuppressWarnings("null")
 public static void main( String args[] )
   {
+	/* i'm trying to add this line into file to test
+	*/
     Connection c = null;
     try {
       Class.forName("org.sqlite.JDBC");
@@ -28,6 +31,13 @@ public static void main( String args[] )
 	    	rating[1] = rs.getInt(2);
 	    	rating[2] = rs.getInt(3);	    	
 	    	ratings.add(rating);
+
+			/*
+			Test line:
+			Once we got the index from the database, I think we could start calculation
+			 */
+	    	System.out.println(rating[0]);
+
 	    }
 	} catch (SQLException e) {
 		// TODO Auto-generated catch block
