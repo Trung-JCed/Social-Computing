@@ -56,8 +56,10 @@ public class Recommender {
 				ResultSet result = statement.executeQuery(sql_retrieve);
 
 				ArrayList<Integer> rating = new ArrayList<Integer>();
+				ArrayList<Integer> index = new ArrayList<Integer>();
 				while (result.next()) {
 					rating.add(result.getInt(1));
+					index.add(result.getRow());
 				}
 
 				double mean = this.calMean(rating);
