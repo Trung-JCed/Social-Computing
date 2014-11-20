@@ -52,14 +52,14 @@ public class Recommender {
 			statement = connection.createStatement();
 			int user = 1;
 			for(;;) {
-				String sql_retrieve = "SELECT rating FROM traindata WHERE userid=" + user;
+				String sql_retrieve = "SELECT profileid, rating FROM traindata WHERE userid=" + user;
 				ResultSet result = statement.executeQuery(sql_retrieve);
 
 				ArrayList<Integer> rating = new ArrayList<Integer>();
-				ArrayList<Integer> index = new ArrayList<Integer>();
+				ArrayList<Integer> productId = new ArrayList<Integer>();
 				while (result.next()) {
-					rating.add(result.getInt(1));
-					index.add(result.getRow());
+					rating.add(result.getInt(2));
+					productId.add(result.getInt(1));
 				}
 
 				double mean = this.calMean(rating);
@@ -69,11 +69,8 @@ public class Recommender {
 					adjusted_rating[i] = rating.get(i) - mean;
 				}
 
-				double temp = 0;
-				String sql_update = "INSERT INTO traindata (mean_adjusted_rating) VALUES (" + temp +")";
-
 				for(int j = 0; j < adjusted_rating.length; j++){
-					temp = adjusted_rating[j];
+					String sql_update = "UPDATE traindata SET mean_adjusted_rating = "+adjusted_rating[j]+" WHERE profileid = "+productId.get(j)+" AND userid = "+user;
 					System.out.println(sql_update);
 					statement.executeUpdate(sql_update);
 				}
