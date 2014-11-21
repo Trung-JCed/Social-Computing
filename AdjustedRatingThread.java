@@ -56,8 +56,8 @@ class AdjustedRatingThread implements Runnable
             double mean = this.calMean(rating);
             for(int j = 0; j < rating.size(); j++){
                 double temp = rating.get(j) - mean;
-                String sql_update = "UPDATE traindata SET mean_adjusted_rating = "+temp+" WHERE profileid = "+productId.get(j)+" AND userid = "+user;
-                statement.executeUpdate(sql_update);
+                String sql_insert = "INSERT INTO MAR (itemid, mar) VALUES ("+productId+", "+temp+")";
+                statement.executeUpdate(sql_insert);
             }
             System.out.println("User " + user + " done");
 
