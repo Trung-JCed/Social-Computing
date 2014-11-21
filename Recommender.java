@@ -37,38 +37,7 @@ public class Recommender {
         {
             System.out.println("Thread interrupted");
         }
-
-
-
-        //Recommender test = new Recommender();
-        //test.meanAdjustedRating(c);
     }
-
-    public void firstColumn(Connection c){
-        Statement s;
-        try {
-            s = c.createStatement();
-            ResultSet rs = s.executeQuery( "SELECT * FROM traindata;" );
-            ArrayList <int[]> ratings = new ArrayList<int[]>();
-            while ( rs.next() ) {
-                int[] rating = new int [3];
-                rating[0] = rs.getInt(1);
-                rating[1] = rs.getInt(2);
-                rating[2] = rs.getInt(3);
-                ratings.add(rating);
-
-                System.out.println(rating[0]);
-            }
-        } catch (SQLException e) {
-            // TODO Auto-generated catch block
-            e.printStackTrace();
-        }
-    }
-
-
-
-
-
 }
 
 

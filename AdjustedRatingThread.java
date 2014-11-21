@@ -8,7 +8,6 @@ class AdjustedRatingThread implements Runnable
 {
     private int x, y ;
     protected Connection c;
-    protected Thread th;
 
 
     /*
@@ -35,10 +34,16 @@ class AdjustedRatingThread implements Runnable
 
     public void meanAdjustedRating(Connection connection, int user){
         Statement statement;
+        HashMap<String, String> column = new HashMap<String, String>();
+        column.put("itemid", "INT");
+        column.put("mar", "REAL");
+
         try{
             statement = connection.createStatement();
 
-            String sql_retrieve = "SELECT profileid, rating FROM alldata WHERE userid=" + user;
+            this.createTable(statement, "MAR", column);
+
+            String sql_retrieve = "SELECT profileid, rating FROM traindata WHERE userid=" + user;
             ResultSet result = statement.executeQuery(sql_retrieve);
 
             ArrayList<Integer> rating = new ArrayList<Integer>();
@@ -51,8 +56,7 @@ class AdjustedRatingThread implements Runnable
             double mean = this.calMean(rating);
             for(int j = 0; j < rating.size(); j++){
                 double temp = rating.get(j) - mean;
-                String sql_update = "UPDATE alldata SET adjrating = "+temp+" WHERE profileid = "+productId.get(j)+" AND userid = "+user;
-                // System.out.println(sql_update);
+                String sql_update = "UPDATE traindata SET mean_adjusted_rating = "+temp+" WHERE profileid = "+productId.get(j)+" AND userid = "+user;
                 statement.executeUpdate(sql_update);
             }
             System.out.println("User " + user + " done");
@@ -72,5 +76,18 @@ class AdjustedRatingThread implements Runnable
         }
         mean = sum / k;
         return mean;
+    }
+
+    private void createTable(Statement stmt, String tableName, HashMap<String, String> column) throws SQLException {
+        String sql_create = "CREATE TABLE comp3208."+tableName+" IF NOT EXISTS";
+        stmt.executeUpdate(sql_create);
+
+        Set set = column.entrySet();
+        Iterator i = set.iterator();
+        while (i.hasNext()){
+            Map.Entry map = (Map.Entry) i.next();
+            String sql_alter = "ALTER TABLE comp3208."+tableName+"ADD COLUMN "+map.getKey()+" "+map.getValue();
+            stmt.executeUpdate(sql_alter);
+        }
     }
 }
