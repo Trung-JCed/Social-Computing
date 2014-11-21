@@ -41,7 +41,7 @@ class AdjustedRatingThread implements Runnable
         try{
             statement = connection.createStatement();
 
-            this.createTable(statement, "MAR", column);
+            this.createTable(statement, "mean_adjusted", column);
 
             String sql_retrieve = "SELECT profileid, rating FROM traindata WHERE userid=" + user;
             ResultSet result = statement.executeQuery(sql_retrieve);
@@ -79,14 +79,14 @@ class AdjustedRatingThread implements Runnable
     }
 
     private void createTable(Statement stmt, String tableName, HashMap<String, String> column) throws SQLException {
-        String sql_create = "CREATE TABLE comp3208."+tableName+" IF NOT EXISTS";
+        String sql_create = "CREATE TABLE IF NOT EXISTS comp3208."+tableName;
         stmt.executeUpdate(sql_create);
 
         Set set = column.entrySet();
         Iterator i = set.iterator();
         while (i.hasNext()){
             Map.Entry map = (Map.Entry) i.next();
-            String sql_alter = "ALTER TABLE comp3208."+tableName+"ADD COLUMN "+map.getKey()+" "+map.getValue();
+            String sql_alter = "ALTER TABLE comp3208."+tableName+" ADD COLUMN "+map.getKey()+" "+map.getValue();
             stmt.executeUpdate(sql_alter);
         }
     }
