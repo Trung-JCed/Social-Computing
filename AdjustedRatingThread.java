@@ -1,93 +1,83 @@
 import java.lang.System;
 import java.sql.*;
 import java.util.*;
+import java.util.Map.Entry;
 /*
  * Class for the thread to make the image
  */
 class AdjustedRatingThread implements Runnable
 {
-    private int x, y ;
+    private int user;
+
     protected Connection c;
+    private ResultSet rs;
 
-
-    /*
-     * Passes the values of the thread where it will start making the image
-     */
-    public AdjustedRatingThread(int x, int y, Connection c)
+    public AdjustedRatingThread(Connection c, ResultSet rs, boolean turn)
     {
-        this.x = x;
-        this.y = y;
+        this.rs = rs;
+    //    this.turn = turn;
+        user = turn ? 1 : 2;
         this.c = c;
     }
 
-    /*
-     *Thread call this with the start() and actually filling the pixel with the parameters given
-     */
     public void run()
     {
-        for (int i = x; i <= y; i++)
-        {
-            System.out.println("Calculating userid " + i );
-            this.meanAdjustedRating(c, i);
+        try {
+            while(rs.next()){
+                this.meanAdjustedRating(c);
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
         }
     }
 
-    public void meanAdjustedRating(Connection connection, int user){
-        Statement statement;
-        HashMap<String, String> column = new HashMap<String, String>();
-        column.put("itemid", "INT");
-        column.put("mar", "REAL");
+    public void meanAdjustedRating(Connection connection){
+        System.out.println("Calculating userId " + user);
 
+        PreparedStatement s;
+        PreparedStatement prestmt;
         try{
-            statement = connection.createStatement();
+            prestmt = connection.prepareStatement("SELECT profileid, rating FROM traindata WHERE userid=?");
+            prestmt.setInt(1,user);
 
-            this.createTable(statement, "mean_adjusted", column);
-
-            String sql_retrieve = "SELECT profileid, rating FROM traindata WHERE userid=" + user;
-            ResultSet result = statement.executeQuery(sql_retrieve);
-
-            ArrayList<Integer> rating = new ArrayList<Integer>();
-            ArrayList<Integer> productId = new ArrayList<Integer>();
+            ResultSet result = prestmt.executeQuery();
+            HashMap<Integer, Integer> mapA = new HashMap<Integer, Integer>();
             while (result.next()) {
-                rating.add(result.getInt(2));
-                productId.add(result.getInt(1));
+                mapA.put(result.getInt(1), result.getInt(2));
             }
+            double mean = this.calMean(mapA);
 
-            double mean = this.calMean(rating);
-            for(int j = 0; j < rating.size(); j++){
-                double temp = rating.get(j) - mean;
-                String sql_insert = "INSERT INTO MAR (itemid, mar) VALUES ("+productId+", "+temp+")";
-                statement.executeUpdate(sql_insert);
+            Iterator<Entry<Integer, Integer>> it = mapA.entrySet().iterator();
+
+            s = connection.prepareStatement("INSERT INTO adjusted_rating (userid, itemid, rating, adj) VALUES (?,?,?,?)");
+
+            while (it.hasNext()) {
+                Map.Entry<Integer, Integer> pairs = it.next();
+                double temp = pairs.getValue() - mean;
+
+                s.setInt(1, user);
+                s.setInt(2, pairs.getKey());
+                s.setInt(3, pairs.getValue());
+                s.setDouble(4, temp);
+                s.executeUpdate();
             }
             System.out.println("User " + user + " done");
-
-
+            user += 2;
         }catch (SQLException e){
             e.printStackTrace();
         }
     }
 
-    private double calMean(ArrayList<Integer> temp){
-        double sum = 0,k = 0;
+    public double calMean(Map<Integer, Integer> mp) {
         double mean;
-        for(int i = 0; i < temp.size(); i++){
-            sum += temp.get(i);
-            k++;
+        double sum = 0;
+        int size = mp.size();
+        Iterator<Entry<Integer, Integer>> it = mp.entrySet().iterator();
+        while (it.hasNext()) {
+            Map.Entry<Integer, Integer> pairs = it.next();
+            sum = sum + pairs.getValue();
         }
-        mean = sum / k;
+        mean = sum / size;
         return mean;
-    }
-
-    private void createTable(Statement stmt, String tableName, HashMap<String, String> column) throws SQLException {
-        String sql_create = "CREATE TABLE IF NOT EXISTS comp3208."+tableName;
-        stmt.executeUpdate(sql_create);
-
-        Set set = column.entrySet();
-        Iterator i = set.iterator();
-        while (i.hasNext()){
-            Map.Entry map = (Map.Entry) i.next();
-            String sql_alter = "ALTER TABLE comp3208."+tableName+" ADD COLUMN "+map.getKey()+" "+map.getValue();
-            stmt.executeUpdate(sql_alter);
-        }
     }
 }

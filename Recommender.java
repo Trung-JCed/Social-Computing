@@ -21,22 +21,20 @@ public class Recommender {
         }
         System.out.println("Opened database successfully");
 
-        Thread th = new Thread(new AdjustedRatingThread( 1,  100000 ,c), "thread1");
-        Thread th2 = new Thread(new AdjustedRatingThread(100001, 200000, c), "thread2");
-        //Start making it
-        th.start();
-        th2.start();
+        ResultSet rs = null;
+        Statement smt;
+        try {
+            smt = c.createStatement();
+            rs = smt.executeQuery("SELECT * FROM traindata;");
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
 
-        try
-        {
-            //Wait for the threads to die
-            th.join();
-            th2.join();
-        }
-        catch (InterruptedException e)
-        {
-            System.out.println("Thread interrupted");
-        }
+        Thread odd = new Thread(new AdjustedRatingThread(c, rs, true));
+        Thread even = new Thread(new AdjustedRatingThread(c, rs, false));
+
+        odd.start();
+        even.start();
     }
 }
 
