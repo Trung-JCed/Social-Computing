@@ -9,7 +9,7 @@ import java.util.Map.Entry;
 class AdjustedRatingThread implements Runnable
 {
     private int user;
-
+    private boolean isRunnable = true;
     protected Connection c;
     private ResultSet rs;
 
@@ -23,7 +23,7 @@ class AdjustedRatingThread implements Runnable
     public void run()
     {
         try {
-            while(rs.next()){
+            while(isRunnable){
                 this.meanAdjustedRating(c);
             }
         } catch (SQLException e) {
@@ -68,6 +68,11 @@ class AdjustedRatingThread implements Runnable
             sql_delete.executeUpdate();
 
             System.out.println("Deleting user " + user + " done");
+
+            PreparedStatement sql_delete = connection.prepareStatement("SELECT COUNT(*) FROM exercise");
+            if(sql_delete == 0){
+                this.isRunnable = false;
+            }
 
             user += 2;
         }catch (SQLException e){
