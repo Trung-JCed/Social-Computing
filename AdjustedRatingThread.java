@@ -1,5 +1,6 @@
 import java.lang.System;
 import java.sql.*;
+import java.sql.PreparedStatement;
 import java.util.*;
 import java.util.Map.Entry;
 /*
@@ -15,7 +16,6 @@ class AdjustedRatingThread implements Runnable
     public AdjustedRatingThread(Connection c, ResultSet rs, boolean turn)
     {
         this.rs = rs;
-        //    this.turn = turn;
         user = turn ? 1 : 2;
         this.c = c;
     }
@@ -29,8 +29,6 @@ class AdjustedRatingThread implements Runnable
         } catch (SQLException e) {
             e.printStackTrace();
         }
-
-
     }
 
     public void meanAdjustedRating(Connection connection){
@@ -64,6 +62,10 @@ class AdjustedRatingThread implements Runnable
                 s.executeUpdate();
             }
             System.out.println("User " + user + " done");
+
+            PreparedStatement sql_delete = connection.prepareStatement("DELETE * FROM exercise WHERE userid=?");
+            sql_delete.setInt(1, user);
+
             user += 2;
         }catch (SQLException e){
             e.printStackTrace();
