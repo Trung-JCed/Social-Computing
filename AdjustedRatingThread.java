@@ -61,10 +61,13 @@ class AdjustedRatingThread implements Runnable
                 s.setDouble(4, temp);
                 s.executeUpdate();
             }
-            System.out.println("User " + user + " done");
+            System.out.println("Calculation of user " + user + " done");
 
-            PreparedStatement sql_delete = connection.prepareStatement("DELETE * FROM exercise WHERE userid=?");
+            PreparedStatement sql_delete = connection.prepareStatement("DELETE FROM exercise WHERE userid=?");
             sql_delete.setInt(1, user);
+            sql_delete.executeUpdate();
+
+            System.out.println("Deleting user " + user + " done");
 
             user += 2;
         }catch (SQLException e){
