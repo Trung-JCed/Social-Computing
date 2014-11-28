@@ -35,6 +35,25 @@ public class Recommender {
 
         odd.start();
         even.start();
+
+        Similarity s = new Similarity(c);
+
+
+
+
+        // SET SIMILARITY TABLE
+        for (int i = 1; i <= 5; i++) {
+            for (int j = 1; j <= 5; j++) {
+                if (i != j) {
+                    s.getSimilarity(i, j);
+                }
+
+            }
+        }
+
+        s.setPrediction(3,1);
+        s.setPrediction(2,1);
+        s.setPrediction(2,2);
     }
 }
 

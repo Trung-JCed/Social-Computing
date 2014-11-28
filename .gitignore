@@ -1,0 +1,11 @@
+# Database file #
+#################
+*.db
+
+# executable file #
+###################
+*.exe
+
+# executable jar #
+##################
+*.jar
