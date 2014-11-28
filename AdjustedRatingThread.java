@@ -2,50 +2,84 @@ import java.lang.System;
 import java.sql.*;
 import java.util.*;
 import java.util.Map.Entry;
-
+/*
+ * Class for the thread to make the image
+ */
 class AdjustedRatingThread implements Runnable
 {
-    private int x, y ;
+    private int user;
+
     protected Connection c;
-    protected Thread th;
+    private ResultSet rs;
 
-
-
-    public AdjustedRatingThread(int x, int y, Connection c)
+    public AdjustedRatingThread(Connection c, ResultSet rs, boolean turn)
     {
-        this.x = x;
-        this.y = y;
+        this.rs = rs;
+    //    this.turn = turn;
+        user = turn ? 1 : 2;
         this.c = c;
     }
 
-
     public void run()
     {
-       /* for (int i = 0; i <= 6; i++)
-        {
-        	System.out.println("Calculating userid " + i );
-            this.meanAdjustedRating(c, i);
-        } 
-    	*/
-
-        // SET SIMILARITY TABLE
-    	/* for (int i = 1; i <= 5; i++)
-         {
-    		 for (int j = 1; j <= 5; j++)
-    		 {
-    			 if (i != j) {
-    	    			this.getSimilarity(i, j, c);
-    			 }
-    			 
-    		 }
-         } 
-    	 */
-
-        this.setPrediction(3,1,c);
-        this.setPrediction(2,1,c);
-        this.setPrediction(2,2,c);
+        try {
+            while(rs.next()){
+                this.meanAdjustedRating(c);
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
     }
 
+    public void meanAdjustedRating(Connection connection){
+        System.out.println("Calculating userId " + user);
+
+        PreparedStatement s;
+        PreparedStatement prestmt;
+        try{
+            prestmt = connection.prepareStatement("SELECT profileid, rating FROM exercise WHERE userid=?");
+            prestmt.setInt(1,user);
+
+            ResultSet result = prestmt.executeQuery();
+            HashMap<Integer, Integer> mapA = new HashMap<Integer, Integer>();
+            while (result.next()) {
+                mapA.put(result.getInt(1), result.getInt(2));
+            }
+            double mean = this.calMean(mapA);
+
+            Iterator<Entry<Integer, Integer>> it = mapA.entrySet().iterator();
+
+            s = connection.prepareStatement("INSERT INTO exercise_adjusted (userid, itemid, rating, adj) VALUES (?,?,?,?)");
+
+            while (it.hasNext()) {
+                Map.Entry<Integer, Integer> pairs = it.next();
+                double temp = pairs.getValue() - mean;
+
+                s.setInt(1, user);
+                s.setInt(2, pairs.getKey());
+                s.setInt(3, pairs.getValue());
+                s.setDouble(4, temp);
+                s.executeUpdate();
+            }
+            System.out.println("User " + user + " done");
+            user += 2;
+        }catch (SQLException e){
+            e.printStackTrace();
+        }
+    }
+
+    public double calMean(Map<Integer, Integer> mp) {
+        double mean;
+        double sum = 0;
+        int size = mp.size();
+        Iterator<Entry<Integer, Integer>> it = mp.entrySet().iterator();
+        while (it.hasNext()) {
+            Map.Entry<Integer, Integer> pairs = it.next();
+            sum = sum + pairs.getValue();
+        }
+        mean = sum / size;
+        return mean;
+    }
 
     public void getSimilarity(int item1, int item2, Connection c)
     {
@@ -70,69 +104,6 @@ class AdjustedRatingThread implements Runnable
             e1.printStackTrace();
         }
     }
-
-    public void meanAdjustedRating(Connection connection, int user){
-        try{
-            PreparedStatement prestmt = connection.prepareStatement("SELECT itemid, rating FROM exercise WHERE userid=?");
-            prestmt.setInt(1,user);
-            //String sql_retrieve = "SELECT profileid, rating FROM alldata WHERE userid=" + user;
-            ResultSet result = prestmt.executeQuery();
-            HashMap<Integer, Integer> mapA = new HashMap<Integer, Integer>();
-            while (result.next()) {
-                //System.out.println(result.getInt(1) + " " + result.getInt(2));
-                mapA.put(result.getInt(1), result.getInt(2));
-            }
-            double mean = this.calMean(mapA);
-            //System.out.println(mean);
-
-            Iterator<Entry<Integer, Integer>> it = mapA.entrySet().iterator();
-            while (it.hasNext()) {
-                Map.Entry<Integer, Integer> pairs = (Entry<Integer, Integer>)it.next();
-                double temp = pairs.getValue() - mean;
-                //System.out.println(pairs.getKey() +  " " + pairs.getValue());
-                //INSERT INTO COMPANY (ID,NAME,AGE,ADDRESS,SALARY)
-
-                PreparedStatement s = connection.prepareStatement("INSERT INTO exercise_adjusted"
-                        + "(userid, itemid, rating, adj) VALUES"
-                        + "(?,?,?,?)");
-                s.setInt(1, user);
-                s.setInt(2, pairs.getKey());
-                s.setInt(3, pairs.getValue());
-                s.setDouble(4, temp);
-                s.executeUpdate();
-                // it.remove(); // avoids a ConcurrentModificationException
-            }
-            System.out.println("User " + user + " done");
-
-
-            // double mean = this.calMean(rating);
-
-
-
-        }catch (SQLException e){
-            e.printStackTrace();
-        }
-    }
-
-    public double  calMean(Map<Integer, Integer> mp) {
-        double mean;
-        double sum = 0;
-        int size = mp.size();
-        Iterator<Entry<Integer, Integer>> it = mp.entrySet().iterator();
-        while (it.hasNext()) {
-            Map.Entry<Integer, Integer> pairs = (Entry<Integer, Integer>)it.next();
-            //System.out.println( sum + " + " + pairs.getValue());
-            sum = sum + pairs.getValue();
-            //it.remove(); // avoids a ConcurrentModificationException
-        }
-        // System.out.println("mean: " + mean);
-        // System.out.println("sum: " + sum);
-        //System.out.println("size: " + size);
-        mean = sum / size;
-        //  System.out.println("mean: " + mean);
-        return mean;
-    }
-
 
     public List<Integer> getUsers(int x, Connection c) {
         List<Integer> l1 = new ArrayList<Integer>();
@@ -245,23 +216,4 @@ class AdjustedRatingThread implements Runnable
         prediction = x / y;
         return prediction;
     }
-    
-    
-    
-    
-    
-    
-
-    /*
-
-    private double calMean(ArrayList<Integer> temp){
-        double sum = 0,k = 0;
-        double mean;
-        for(int i = 0; i < temp.size(); i++){
-            sum += temp.get(i);
-            k++;
-        }
-        mean = sum / k;
-        return mean;
-    }*/
 }
