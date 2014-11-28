@@ -25,7 +25,7 @@ public class Recommender {
         Statement smt;
         try {
             smt = c.createStatement();
-            rs = smt.executeQuery("SELECT * FROM traindata;");
+            rs = smt.executeQuery("SELECT * FROM exercise;");
         } catch (SQLException e) {
             e.printStackTrace();
         }
@@ -37,19 +37,19 @@ public class Recommender {
         even.start();
 
         Similarity s = new Similarity(c);
+    	
+    	
 
 
+       /* // SET SIMILARITY TABLE
+    	 for (int i = 1; i <= 5; i++) {
+             for (int j = 1; j <= 5; j++) {
+                 if (i != j) {
+                     s.getSimilarity(i, j);
+                 }
 
-
-        // SET SIMILARITY TABLE
-        for (int i = 1; i <= 5; i++) {
-            for (int j = 1; j <= 5; j++) {
-                if (i != j) {
-                    s.getSimilarity(i, j);
-                }
-
-            }
-        }
+             }
+         } */
 
         s.setPrediction(3,1);
         s.setPrediction(2,1);

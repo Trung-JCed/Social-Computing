@@ -15,41 +15,22 @@ class AdjustedRatingThread implements Runnable
     public AdjustedRatingThread(Connection c, ResultSet rs, boolean turn)
     {
         this.rs = rs;
-    //    this.turn = turn;
+        //    this.turn = turn;
         user = turn ? 1 : 2;
         this.c = c;
     }
 
     public void run()
     {
-       /* try {
+        try {
             while(rs.next()){
                 this.meanAdjustedRating(c);
             }
         } catch (SQLException e) {
             e.printStackTrace();
-        } */
-
-          for (int i = 0; i <= 6; i++)
-        {
-        	System.out.println("Calculating userid " + i );
-            this.meanAdjustedRating(c, i);
         }
 
 
-        // SET SIMILARITY TABLE
-    	 for (int i = 1; i <= 5; i++) {
-             for (int j = 1; j <= 5; j++) {
-                 if (i != j) {
-                     this.getSimilarity(i, j, c);
-                 }
-
-             }
-         }
-
-        this.setPrediction(3,1,c);
-        this.setPrediction(2,1,c);
-        this.setPrediction(2,2,c);
     }
 
     public void meanAdjustedRating(Connection connection){
@@ -58,7 +39,7 @@ class AdjustedRatingThread implements Runnable
         PreparedStatement s;
         PreparedStatement prestmt;
         try{
-            prestmt = connection.prepareStatement("SELECT profileid, rating FROM exercise WHERE userid=?");
+            prestmt = connection.prepareStatement("SELECT itemid, rating FROM exercise WHERE userid=?");
             prestmt.setInt(1,user);
 
             ResultSet result = prestmt.executeQuery();
